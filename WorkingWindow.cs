@@ -5,7 +5,10 @@ using OpenTK;
 using OpenTK.Graphics.OpenGL;
 using OpenTK.Input;
 using System.Threading;
+//Grupa 3131B Bruma Sebastian
 
+//Apasarea tastei W afiseaza forma de tip cub, tastsa A roteste in stanga , D roteste in dreapta,
+//cubul se rotestes sus/jos in functie de in ce parte a ecranului este situat mouseul
 namespace LaboratorEGC
 {
     class WorkingWindow: GameWindow
