@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Windows.Forms;
 using System.Drawing;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
@@ -14,6 +15,9 @@ namespace LaboratorEGC
         bool moveLeft, moveRight, showCube, moveUp, moveDown;
         KeyboardState lastKeyPress;
 
+        //MouseState current, previous;
+
+        
         public WorkingWindow() : base(1280, 720)
         {
             
@@ -96,15 +100,16 @@ namespace LaboratorEGC
             }
             lastKeyPress = keyboardInput;
 
-            
             moveUp = false; moveDown = false;
-            if (mouse.Y < 55)
+            //current = new MouseState();
+            if (mouse.Y  > 0)
             {
-                Console.WriteLine(mouse.Y);
                 moveUp = true;
             }
-            else if (mouse.Y > 60)
+            else if (mouse.Y  < 0)
+            {
                 moveDown = true;
+            }
         }
 
         protected override void OnRenderFrame(FrameEventArgs e)
