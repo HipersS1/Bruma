@@ -3,29 +3,48 @@ using System.Windows.Forms;
 using System.Drawing;
 using OpenTK;
 using OpenTK.Graphics.OpenGL;
+using OpenTK.Graphics;
 using OpenTK.Input;
 using System.Threading;
 //Grupa 3131B Bruma Sebastian
 
+//Laborator 2
 //Apasarea tastei W afiseaza forma de tip cub, tastsa A roteste in stanga , D roteste in dreapta,
 //cubul se rotestes sus/jos in functie de in ce parte a ecranului este situat mouseul
+
+//Laborator 3
+//Pentru schimbarea culorilor tineti apasat tasta R/G/B si sageata Sus/Jos
+//Pentru miscarea camerei stanga-dreapta tineti apasat click-stanga si miscati mouseul stanga sau dreapta
+
 namespace LaboratorEGC
 {
     class WorkingWindow: GameWindow
     {
-        private float rotation_speed = 90.0f;
-        private float angle;
-        bool moveLeft, moveRight, showCube, moveUp, moveDown;
+        private const int XYZ_SIZE = 75;
+        private float rotation_speed = 90.0f, angle;
+
+        bool moveLeft, moveRight, showCube;
+        bool moveMouseUp, moveMouseDown, moveMouseLeft, moveMouseRight;
+
+        float eyeX = 5, eyeY = 6, eyeZ = 20; //Variabile pentru Matrix.LookAt();
+        int colorRed = 0, colorGreen = 0, colorBlue = 0;//Variabile ce contin informatii despre culorile RGB
+
         KeyboardState lastKeyPress;
+        Vector3 v0, v1, v2;//Vectori pentru desenarea unui triunghi
+        string fileName = @"D:\Facultate\EGC\L2\LaboratorEGC\Triunghi.txt";
 
-        //MouseState current, previous;
 
-        
-        public WorkingWindow() : base(1280, 720)
+        //Constante
+        private const int maxColor = 255;
+        private const int minColor = 0;
+
+        public WorkingWindow() : base(800, 600, new GraphicsMode(32, 24, 0, 8))
         {
-            
             VSync = VSyncMode.Adaptive;
             KeyDown += Keyboard_KeyDown;
+            v0 = new Vector3(5, 0, 0);
+            v1 = new Vector3(10, 0, 0);
+            v2 = new Vector3(10, 10, 0);
         }
 
         [STAThread]
@@ -35,7 +54,6 @@ namespace LaboratorEGC
             {
                 laborator.Title = "Laborator EGC";
                 laborator.Run(60.0, 0.0);
-                
             }
         }
 
@@ -54,23 +72,19 @@ namespace LaboratorEGC
         protected override void OnLoad(EventArgs e)
         {
             GL.ClearColor(Color.CadetBlue);
+            GL.Enable(EnableCap.DepthTest);
+            GL.Enable(EnableCap.CullFace);
         }
 
 
         protected override void OnResize(EventArgs e)
         {
             GL.Viewport(0, 0, Width, Height);
-            
-            //GL.MatrixMode(MatrixMode.Projection);
-            //GL.LoadIdentity();
-            //GL.Ortho(-1.0, 1.0, -1.0, 1.0, 0.0, 4.0);
-
             double aspect_ratio = Width / (double)Height;
 
             Matrix4 perspective = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, (float)aspect_ratio, 1, 64);
             GL.MatrixMode(MatrixMode.Projection);
             GL.LoadMatrix(ref perspective);
-
         }
         
         protected override void OnUpdateFrame(FrameEventArgs e)
@@ -78,8 +92,8 @@ namespace LaboratorEGC
             GL.Clear(ClearBufferMask.ColorBufferBit);
             KeyboardState keyboardInput = OpenTK.Input.Keyboard.GetState();
             MouseState mouse = OpenTK.Input.Mouse.GetState();
-            
 
+            #region Laborator 2 rotirea formei din tasta
             moveLeft = false; moveRight = false;
             if(keyboardInput[OpenTK.Input.Key.A])
             {
@@ -101,10 +115,149 @@ namespace LaboratorEGC
                     showCube = true;
                 }
             }
+            #endregion
             lastKeyPress = keyboardInput;
 
+            #region Schimbarea culorii vertexurilor prima modalitate LABORATOR 3
+            //  RX
+            //GZ   BC
+            //moveUp = false;
+            /*
+            if (keyboardInput[OpenTK.Input.Key.Z])
+            {
+                if (CheckIfInRangeColor(colorGreen))
+                {
+                    colorGreen++;
+                    if (CheckIfInRangeColor(colorBlue-1))
+                        colorBlue--;
+                    if (CheckIfInRangeColor(colorRed-1))
+                        colorRed--;
+                }
+            }
+            if (keyboardInput[OpenTK.Input.Key.X])
+            {
+                if (CheckIfInRangeColor(colorRed))
+                {
+                    colorRed++;
+                    if (CheckIfInRangeColor(colorBlue-1))
+                        colorBlue--;
+                    if (CheckIfInRangeColor(colorGreen-1))
+                        colorGreen--;
+                }
+            }
+            if (keyboardInput[OpenTK.Input.Key.C])
+            {
+                if (CheckIfInRangeColor(colorBlue))
+                {
+                    colorBlue++;
+                    if (CheckIfInRangeColor(colorRed-1))
+                        colorRed--;
+                    if (CheckIfInRangeColor(colorGreen-1))
+                        colorGreen--;
+                }
+            }
+            */
+            #endregion
+
+            #region Schimbarea culorii vertexurilor a doua modalitate Laborator 3 Punctul 8
+
+            if (keyboardInput[OpenTK.Input.Key.G] )
+            {
+                if(keyboardInput[OpenTK.Input.Key.Up])
+                {
+                    if (CheckIfInRangeColor(colorGreen))
+                    {
+                        colorGreen++;
+                        Console.WriteLine("R: " + colorRed + " G: " + colorGreen + " B: " + colorBlue);
+                    }
+                }
+                else if (keyboardInput[OpenTK.Input.Key.Down])
+                {
+                    if (CheckIfInRangeColor(colorGreen-1))
+                    {
+                        colorGreen--;
+                        Console.WriteLine("R: " + colorRed + " G: " + colorGreen + " B: " + colorBlue);
+                    }
+                }
+            }
+
+            if (keyboardInput[OpenTK.Input.Key.R])
+            {
+                if (keyboardInput[OpenTK.Input.Key.Up])
+                {
+                    if (CheckIfInRangeColor(colorRed))
+                    {
+                        colorRed++;
+                        Console.WriteLine("R: " + colorRed + " G: " + colorGreen + " B: " + colorBlue);
+                    }
+                }
+                else if (keyboardInput[OpenTK.Input.Key.Down])
+                {
+                    if (CheckIfInRangeColor(colorRed - 1))
+                    {
+                        colorRed--;
+                        Console.WriteLine("R: " + colorRed + " G: " + colorGreen + " B: " + colorBlue);
+                    }
+                }
+            }
+
+            if (keyboardInput[OpenTK.Input.Key.B])
+            {
+                if (keyboardInput[OpenTK.Input.Key.Up])
+                {
+                    if (CheckIfInRangeColor(colorBlue))
+                    {
+                        colorBlue++;
+                        Console.WriteLine("R: " + colorRed + " G: " + colorGreen + " B: " + colorBlue);
+                    }
+                }
+                else if (keyboardInput[OpenTK.Input.Key.Down])
+                {
+                    if (CheckIfInRangeColor(colorBlue - 1))
+                    {
+                        colorBlue--;
+                        Console.WriteLine("R: " + colorRed + " G: " + colorGreen + " B: " + colorBlue);
+                    }
+                }
+            }
+
+            #endregion
+
+            #region Move camera left-right
+            if (OpenTK.Input.Mouse.GetState()[MouseButton.Left])
+            {
+
+                moveMouseUp = false; moveMouseDown = false; moveMouseLeft = false; moveMouseRight = false;
+                //if (mouse.Y > 50 && eyeY < 20)
+                //{
+                //    moveMouseUp = true;
+                //    Console.WriteLine("Sus" + mouse.Y);
+
+                //    eyeY += 0.5f;
+                //}
+                //else if (mouse.Y < -50 && eyeY > -10)
+                //{
+                //    moveMouseDown = true;
+                //    Console.WriteLine("Jos");
+                //    eyeY -= 0.5f;
+                //}
+                if (mouse.X > 50 && eyeX < 30)
+                {
+                    moveMouseRight = true;
+                    eyeX += 0.5f;
+                }
+                else if (mouse.X < -50 && eyeX > -30)
+                {
+                    eyeX -= 0.5f;
+                    moveMouseLeft = true;
+                }
+            }
+            #endregion Move Camera Left-Right
+
+
+
+            /*Laborator 2 rotire in functie de mouse.
             moveUp = false; moveDown = false;
-            //current = new MouseState();
             if (mouse.Y  > 0)
             {
                 moveUp = true;
@@ -113,20 +266,30 @@ namespace LaboratorEGC
             {
                 moveDown = true;
             }
+            */
         }
 
         protected override void OnRenderFrame(FrameEventArgs e)
         {
             base.OnRenderFrame(e);
-
+            
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            Matrix4 lookat = Matrix4.LookAt(0, 1, 10, 0, 0, 0, 0, 1, 0);
+            Matrix4 lookat = Matrix4.LookAt(eyeX, eyeY, eyeZ, 0, 0, 0, 0, 1, 0);
             GL.MatrixMode(MatrixMode.Modelview);
             GL.LoadMatrix(ref lookat);
-            //GL.Translate(new Vector3(-5, 0, 2));
-            DrawForm2();
 
+            Triunghi trFis = Triunghi.ReadFileTriangle(fileName);
+            Triunghi.DrawTriangle(trFis, Color.FromArgb(2, colorRed, colorGreen, colorBlue), Color.FromArgb(colorBlue, colorRed, colorGreen), Color.FromArgb(colorGreen, colorRed, colorBlue));
+
+            Triunghi tr = new Triunghi(v0, v1, v2);
+            Triunghi.DrawTriangle(tr);
+
+
+            DrawAxes(); // Laborator 3 Puntctul 1 //Desenarea axelor
+            DrawForm3();
+            //DrawForm2();
+            ///Laborator 2
             if (showCube == true)
             {
                 angle += rotation_speed * (float)e.Time;
@@ -138,21 +301,48 @@ namespace LaboratorEGC
                 {
                     GL.Rotate(angle, 0.0f, -1.0f, 0.0f);
                 }
-                if (moveUp == true)
+                if (moveMouseUp == true)
                 {
                     GL.Rotate(angle, 1.0f, 0.0f, 0.0f);
                 }
-                else if (moveDown == true)
+                else if (moveMouseDown == true)
                 {
                     GL.Rotate(angle, -1.0f, 0.0f, 0.0f);
                 }
                 DrawCube(); 
             }
+ 
+            GL.Translate(-9, 0, 0);
+            Triunghi trFis2 = Triunghi.ReadFileTriangle(fileName);
+            Triunghi.DrawTriangle(trFis, colorRed, colorGreen, colorBlue);
+
             this.SwapBuffers();
-            //Thread.Sleep(1);
+            Thread.Sleep(1);
         }
 
 
+        /// Laborator 3 desenarea axelor cu un singur begin
+        private void DrawAxes()
+        {
+            GL.LineWidth(20.0f);
+
+            // Desenează axa Ox (cu roșu).
+            GL.Begin(PrimitiveType.Lines);
+            GL.Color3(Color.Red);
+            GL.Vertex3(0, 0, 0);
+            GL.Vertex3(XYZ_SIZE, 0, 0);
+            
+            // Desenează axa Oy (cu galben).
+            GL.Color3(Color.Yellow);
+            GL.Vertex3(0, 0, 0);
+            GL.Vertex3(0, XYZ_SIZE, 0); ;
+            
+            // Desenează axa Oz (cu verde).
+            GL.Color3(Color.Green);
+            GL.Vertex3(0, 0, 0);
+            GL.Vertex3(0, 0, XYZ_SIZE);
+            GL.End();
+        }
         private void DrawForm()
         {
             GL.Clear(ClearBufferMask.ColorBufferBit);
@@ -170,7 +360,7 @@ namespace LaboratorEGC
         private void DrawForm2()
         {
             //
-            GL.Clear(ClearBufferMask.ColorBufferBit);
+            //GL.Clear(ClearBufferMask.ColorBufferBit);
             GL.Begin(PrimitiveType.Quads);
 
             GL.Color3(Color.Red);
@@ -180,6 +370,23 @@ namespace LaboratorEGC
             GL.Vertex2(2f, 3f);
             GL.Color3(Color.Yellow);
             GL.Vertex2(-2f, 3f);
+
+            GL.End();
+
+        }
+        private void DrawForm3()
+        {
+            //
+            //GL.Clear(ClearBufferMask.ColorBufferBit);
+            GL.Begin(PrimitiveType.Quads);
+
+            GL.Color3(Color.Red);
+            GL.Vertex3(-3f, 2f, 0);
+            GL.Vertex3(2f, 2f, 0);
+            GL.Color3(Color.Blue);
+            GL.Vertex3(2f, 3f, 0);
+            GL.Color3(Color.Yellow);
+            GL.Vertex3(-2f, 3f, 0);
 
             GL.End();
 
@@ -227,5 +434,14 @@ namespace LaboratorEGC
 
             GL.End();
         }
+
+        public bool CheckIfInRangeColor(int color)
+        {
+            if (color >= minColor && color < maxColor)
+                return true;
+            return false;
+        }
+
     }
 }
+
