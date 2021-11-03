@@ -32,8 +32,10 @@ namespace LaboratorEGC
         KeyboardState lastKeyPress;
         Vector3 v0, v1, v2;//Vectori pentru desenarea unui triunghi
         string fileName = @"D:\Facultate\EGC\L2\LaboratorEGC\Triunghi.txt";
+        string fileNameCube = @"D:\Facultate\EGC\L2\LaboratorEGC\Cube.txt";
 
-
+        private Color[] cubeColors;
+        Randomizer randomColors;
         //Constante
         private const int maxColor = 255;
         private const int minColor = 0;
@@ -45,6 +47,14 @@ namespace LaboratorEGC
             v0 = new Vector3(5, 0, 0);
             v1 = new Vector3(10, 0, 0);
             v2 = new Vector3(10, 10, 0);
+            ///initializare culori pentru cub
+            randomColors = new Randomizer();
+            cubeColors = new Color[6];
+            for (int i = 0; i < 6; i++)
+            {
+                cubeColors[i] = randomColors.RandomColor();
+            }
+            TextMenu();
         }
 
         [STAThread]
@@ -76,7 +86,6 @@ namespace LaboratorEGC
             GL.Enable(EnableCap.CullFace);
         }
 
-
         protected override void OnResize(EventArgs e)
         {
             GL.Viewport(0, 0, Width, Height);
@@ -92,6 +101,10 @@ namespace LaboratorEGC
             GL.Clear(ClearBufferMask.ColorBufferBit);
             KeyboardState keyboardInput = OpenTK.Input.Keyboard.GetState();
             MouseState mouse = OpenTK.Input.Mouse.GetState();
+            if (keyboardInput[OpenTK.Input.Key.H] && !keyboardInput.Equals(lastKeyPress))
+            {
+                TextMenu();// Afisare meniu
+            }
 
             #region Laborator 2 rotirea formei din tasta
             moveLeft = false; moveRight = false;
@@ -116,8 +129,7 @@ namespace LaboratorEGC
                 }
             }
             #endregion
-            lastKeyPress = keyboardInput;
-
+            
             #region Schimbarea culorii vertexurilor prima modalitate LABORATOR 3
             //  RX
             //GZ   BC
@@ -223,6 +235,38 @@ namespace LaboratorEGC
 
             #endregion
 
+            #region Schimbarea culorii unei fete a cubului Laborator 4 Punctul 1,3
+            if (keyboardInput[OpenTK.Input.Key.ControlLeft])
+            {
+                Randomizer faceColor = new Randomizer();
+                if(keyboardInput[OpenTK.Input.Key.Number1] && !keyboardInput.Equals(lastKeyPress))
+                {
+                    cubeColors[0] = faceColor.RandomColor();
+                }
+                if (keyboardInput[OpenTK.Input.Key.Number2] && !keyboardInput.Equals(lastKeyPress))
+                {
+                    cubeColors[1] = faceColor.RandomColor();
+                }
+                if (keyboardInput[OpenTK.Input.Key.Number3] && !keyboardInput.Equals(lastKeyPress))
+                {
+                    cubeColors[2] = faceColor.RandomColor();
+                }
+                if (keyboardInput[OpenTK.Input.Key.Number4] && !keyboardInput.Equals(lastKeyPress))
+                {
+                    cubeColors[3] = faceColor.RandomColor();
+                }
+                if (keyboardInput[OpenTK.Input.Key.Number5] && !keyboardInput.Equals(lastKeyPress))
+                {
+                    cubeColors[4] = faceColor.RandomColor();
+                }
+                if (keyboardInput[OpenTK.Input.Key.Number6] && !keyboardInput.Equals(lastKeyPress))
+                {
+                    cubeColors[5] = faceColor.RandomColor();
+                }
+            }
+
+            #endregion
+
             #region Move camera left-right
             if (OpenTK.Input.Mouse.GetState()[MouseButton.Left])
             {
@@ -254,8 +298,7 @@ namespace LaboratorEGC
             }
             #endregion Move Camera Left-Right
 
-
-
+            #region Laborator 2 mouse
             /*Laborator 2 rotire in functie de mouse.
             moveUp = false; moveDown = false;
             if (mouse.Y  > 0)
@@ -267,6 +310,9 @@ namespace LaboratorEGC
                 moveDown = true;
             }
             */
+            #endregion
+
+            lastKeyPress = keyboardInput;
         }
 
         protected override void OnRenderFrame(FrameEventArgs e)
@@ -279,17 +325,23 @@ namespace LaboratorEGC
             GL.MatrixMode(MatrixMode.Modelview);
             GL.LoadMatrix(ref lookat);
 
+            Axes coordAxes = new Axes();
+            coordAxes.setWidth(5);
+            coordAxes.DrawAxes();
+
             Triunghi trFis = Triunghi.ReadFileTriangle(fileName);
             Triunghi.DrawTriangle(trFis, Color.FromArgb(2, colorRed, colorGreen, colorBlue), Color.FromArgb(colorBlue, colorRed, colorGreen), Color.FromArgb(colorGreen, colorRed, colorBlue));
 
             Triunghi tr = new Triunghi(v0, v1, v2);
             Triunghi.DrawTriangle(tr);
 
-
-            DrawAxes(); // Laborator 3 Puntctul 1 //Desenarea axelor
-            DrawForm3();
+            Cube cub = new Cube(fileNameCube);
+            //DrawAxes(); // Laborator 3 Puntctul 1 //Desenarea axelor
+            //DrawForm3();
             //DrawForm2();
-            ///Laborator 2
+
+            #region Laborator 2 afisare cub / rotire
+
             if (showCube == true)
             {
                 angle += rotation_speed * (float)e.Time;
@@ -309,9 +361,11 @@ namespace LaboratorEGC
                 {
                     GL.Rotate(angle, -1.0f, 0.0f, 0.0f);
                 }
-                DrawCube(); 
+                //DrawCube(); 
+                cub.DrawCube(cubeColors);
             }
- 
+            #endregion
+
             GL.Translate(-9, 0, 0);
             Triunghi trFis2 = Triunghi.ReadFileTriangle(fileName);
             Triunghi.DrawTriangle(trFis, colorRed, colorGreen, colorBlue);
@@ -359,8 +413,6 @@ namespace LaboratorEGC
         }
         private void DrawForm2()
         {
-            //
-            //GL.Clear(ClearBufferMask.ColorBufferBit);
             GL.Begin(PrimitiveType.Quads);
 
             GL.Color3(Color.Red);
@@ -376,8 +428,6 @@ namespace LaboratorEGC
         }
         private void DrawForm3()
         {
-            //
-            //GL.Clear(ClearBufferMask.ColorBufferBit);
             GL.Begin(PrimitiveType.Quads);
 
             GL.Color3(Color.Red);
@@ -435,6 +485,16 @@ namespace LaboratorEGC
             GL.End();
         }
 
+
+        public void TextMenu()
+        {
+            Console.Clear();
+            Console.WriteLine("Modificare culoare triunghi:\n"
+                            + "Tasta R, G, B + sageata sus/jos\n\n"
+                            + "Apasati W pentru afisarea cubului\n"
+                            + "Tineti apasat controlLeft + un numar de  la 1-6 pentru schimbarea culorii fetei cubului\n"
+                            + "\n");
+        }
         public bool CheckIfInRangeColor(int color)
         {
             if (color >= minColor && color < maxColor)
