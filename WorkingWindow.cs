@@ -36,14 +36,50 @@ namespace LaboratorEGC
 
         private Color[] cubeColors;
         Randomizer randomColors;
+
+        //Miscare obiect
+        bool startAnimatieDown;
+        bool startAnimatieUp;
+        bool mouseClicked;
+        private ulong updatesCounter;
+        private int maxHeight = 25;
+
+        //Forme
+        Cube cub;
+        Cube cub2;
+        Triunghi trFis2;
+        MassiveObject obj;
+
         //Constante
         private const int maxColor = 255;
         private const int minColor = 0;
 
-        public WorkingWindow() : base(800, 600, new GraphicsMode(32, 24, 0, 8))
+        /// Camera 3d
+        private readonly Camera3D cam;
+
+        public WorkingWindow() : base(1280, 768, new GraphicsMode(32, 24, 0, 8))
         {
             VSync = VSyncMode.Adaptive;
             KeyDown += Keyboard_KeyDown;
+            updatesCounter = 0;
+
+            obj = new MassiveObject(Color.Yellow);
+            
+
+            cam = new Camera3D();
+
+            cub = new Cube(fileNameCube); // cub
+            cub2 = new Cube(fileNameCube); // cub animatie
+            startAnimatieUp = true;
+            startAnimatieDown = false;
+
+            cub.CubeTranslate(new Vector3(-14, 0, 0));
+            cub2.CubeTranslate(new Vector3(0, maxHeight+6, 0));
+
+            trFis2 = Triunghi.ReadFileTriangle(fileName);
+            trFis2.Translate(new Vector3(10, 0, 0));
+
+
             v0 = new Vector3(5, 0, 0);
             v1 = new Vector3(10, 0, 0);
             v2 = new Vector3(10, 10, 0);
@@ -81,23 +117,32 @@ namespace LaboratorEGC
 
         protected override void OnLoad(EventArgs e)
         {
-            GL.ClearColor(Color.CadetBlue);
             GL.Enable(EnableCap.DepthTest);
-            GL.Enable(EnableCap.CullFace);
+            GL.DepthFunc(DepthFunction.Less);
+
+            GL.Hint(HintTarget.PolygonSmoothHint, HintMode.Nicest);
         }
 
         protected override void OnResize(EventArgs e)
         {
-            GL.Viewport(0, 0, Width, Height);
-            double aspect_ratio = Width / (double)Height;
+            GL.ClearColor(Color.Gray);
 
-            Matrix4 perspective = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, (float)aspect_ratio, 1, 64);
+            // set viewport
+            GL.Viewport(0, 0, this.Width, this.Height);
+
+            // set perspective
+            Matrix4 perspectiva = Matrix4.CreatePerspectiveFieldOfView(MathHelper.PiOver4, (float)this.Width / (float)this.Height, 1, 1024);
             GL.MatrixMode(MatrixMode.Projection);
-            GL.LoadMatrix(ref perspective);
+            GL.LoadMatrix(ref perspectiva);
+
+            // set the eye
+            cam.SetCamera();
         }
         
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
+            
+
             GL.Clear(ClearBufferMask.ColorBufferBit);
             KeyboardState keyboardInput = OpenTK.Input.Keyboard.GetState();
             MouseState mouse = OpenTK.Input.Mouse.GetState();
@@ -106,28 +151,83 @@ namespace LaboratorEGC
                 TextMenu();// Afisare meniu
             }
 
+
+            #region Laborator 5 Camera 3D
+            // camera control (isometric mode)
+            if (keyboardInput[Key.W])
+            {
+                cam.MoveForward();
+            }
+            if (keyboardInput[Key.S])
+            {
+                cam.MoveBackward();
+            }
+            if (keyboardInput[Key.A])
+            {
+                cam.MoveLeft();
+            }
+            if (keyboardInput[Key.D])
+            {
+                cam.MoveRight();
+            }
+            if (keyboardInput[Key.Q])
+            {
+                cam.MoveUp();
+            }
+            if (keyboardInput[Key.E])
+            {
+                cam.MoveDown();
+            }
+            //Set camera far
+            if (keyboardInput[Key.F] && !keyboardInput.Equals(lastKeyPress))
+            {
+                cam.SetCameraFar();
+            }
+            if (keyboardInput[Key.C] && !keyboardInput.Equals(lastKeyPress))
+            {
+                cam.SetCameraClose();
+            }
+
+            #endregion
+            if (keyboardInput[OpenTK.Input.Key.O] && !keyboardInput.Equals(lastKeyPress))
+            {
+                obj.ToggleVisibility();
+            }
+
+
+            #region Laborator 5 animatie cadere
+            if (mouse[MouseButton.Left])
+            {
+                mouseClicked = true;
+            }
+            #endregion
+
             #region Laborator 2 rotirea formei din tasta
             moveLeft = false; moveRight = false;
-            if(keyboardInput[OpenTK.Input.Key.A])
+            if(keyboardInput[OpenTK.Input.Key.ControlLeft])
             {
-                moveLeft = true;
-            }
-            else if(keyboardInput[OpenTK.Input.Key.D])
-            {
-                moveRight = true;
-            }
-            else if (keyboardInput[OpenTK.Input.Key.W]  && !keyboardInput.Equals(lastKeyPress))
-            {
-                // Ascundere comandată, prin apăsarea unei taste - cu verificare de remanență! Timpul de reacțieuman << calculator.
-                if (showCube == true)
+                if (keyboardInput[OpenTK.Input.Key.A])
                 {
-                    showCube = false;
+                    moveLeft = true;
                 }
-                else
+                else if (keyboardInput[OpenTK.Input.Key.D] )
                 {
-                    showCube = true;
+                    moveRight = true;
+                }
+                else if (keyboardInput[OpenTK.Input.Key.W] && !keyboardInput.Equals(lastKeyPress))
+                {
+                    // Ascundere comandată, prin apăsarea unei taste - cu verificare de remanență! Timpul de reacțieuman << calculator.
+                    if (showCube == true)
+                    {
+                        showCube = false;
+                    }
+                    else
+                    {
+                        showCube = true;
+                    }
                 }
             }
+            
             #endregion
             
             #region Schimbarea culorii vertexurilor prima modalitate LABORATOR 3
@@ -321,9 +421,9 @@ namespace LaboratorEGC
             
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-            Matrix4 lookat = Matrix4.LookAt(eyeX, eyeY, eyeZ, 0, 0, 0, 0, 1, 0);
-            GL.MatrixMode(MatrixMode.Modelview);
-            GL.LoadMatrix(ref lookat);
+            //Matrix4 lookat = Matrix4.LookAt(eyeX, eyeY, eyeZ, 0, 0, 0, 0, 1, 0);
+            //GL.MatrixMode(MatrixMode.Modelview);
+            //GL.LoadMatrix(ref lookat);
 
             Axes coordAxes = new Axes();
             coordAxes.setWidth(5);
@@ -335,8 +435,14 @@ namespace LaboratorEGC
             Triunghi tr = new Triunghi(v0, v1, v2);
             Triunghi.DrawTriangle(tr);
 
-            Cube cub = new Cube(fileNameCube);
-            //DrawAxes(); // Laborator 3 Puntctul 1 //Desenarea axelor
+            obj.Draw();
+            cub.DrawCube(cubeColors);
+            if(mouseClicked)
+                this.MoveCube(cub2);
+            cub2.DrawCube(cubeColors);
+
+
+            //DrawAxes(); // Laborator 3 Punctul 1 //Desenarea axelor
             //DrawForm3();
             //DrawForm2();
 
@@ -365,13 +471,35 @@ namespace LaboratorEGC
                 cub.DrawCube(cubeColors);
             }
             #endregion
-
-            GL.Translate(-9, 0, 0);
-            Triunghi trFis2 = Triunghi.ReadFileTriangle(fileName);
-            Triunghi.DrawTriangle(trFis, colorRed, colorGreen, colorBlue);
+            Triunghi.DrawTriangle(trFis2, colorRed, colorGreen, colorBlue);
 
             this.SwapBuffers();
             Thread.Sleep(1);
+        }
+
+        private void MoveCube(Cube c)
+        {
+            if (startAnimatieDown == true && c.getHeight() >= 0)
+            {
+                c.CubeTranslate(new Vector3(0, -0.2f, 0));
+                //Console.WriteLine(c.getHeight());
+                if (c.getHeight() == 0)
+                {
+                    startAnimatieUp = true;
+                    startAnimatieDown = false;
+                    mouseClicked = false;
+                }
+            }
+            if (startAnimatieUp == true && c.getHeight() <= maxHeight)
+            {
+                c.CubeTranslate(new Vector3(0, +0.2f, 0));
+                if (c.getHeight() == maxHeight)
+                {
+                    startAnimatieUp = false;
+                    startAnimatieDown = true;
+                    mouseClicked = false;
+                }
+            }
         }
 
 
