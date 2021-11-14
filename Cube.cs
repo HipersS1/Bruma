@@ -29,6 +29,8 @@ namespace LaboratorEGC
             this.cube = cube;
         }
 
+        public int getHeight() { return (int)cube[0].Y ; }
+
         public void DrawCube(Color[] colors)
         {
             int j = 0;
@@ -42,6 +44,14 @@ namespace LaboratorEGC
                 GL.Vertex3(cube[j++]);
             }
             GL.End();
+        }
+
+        public void CubeTranslate(Vector3 translateVector)
+        {
+            for(int i = 0; i < cube.Length; i++)
+            {
+                cube[i] += translateVector;
+            }
         }
 
         private Vector3[] CreateCubeFromFile(string fileName)
@@ -58,7 +68,6 @@ namespace LaboratorEGC
                     vectorList[i] = new Vector3((float)Convert.ToDouble(infoCord[0]), (float)Convert.ToDouble(infoCord[1]), (float)Convert.ToDouble(infoCord[2]));
                     i++;
                 }
-                
                 return vectorList;
             }
             return null;

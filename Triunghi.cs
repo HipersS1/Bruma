@@ -101,6 +101,13 @@ namespace LaboratorEGC
         }
 
 
+        public void Translate(Vector3 translateVector)
+        {
+            v0 += translateVector;
+            v1 += translateVector;
+            v2 += translateVector;
+        }
+
         public static Triunghi ReadFileTriangle(string fileName)
         {
             string[] lines = File.ReadAllLines(fileName);
