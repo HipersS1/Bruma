@@ -62,8 +62,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <None Include="assets\bottle_cap_obj.obj" />
     <None Include="assets\Cat.obj" />
     <None Include="assets\lowpolytree.obj" />
+    <None Include="assets\slime.obj" />
+    <None Include="assets\soccer_ball.obj" />
+    <None Include="assets\volleyball.obj" />
     <None Include="OpenTK.dll.config" />
     <None Include="packages.config" />
   </ItemGroup>
