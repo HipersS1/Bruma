@@ -7,15 +7,10 @@ using System.IO;
 
 namespace LaboratorEGC
 {
-    class MassiveObject
+    public class MassiveObject
     {
-        //private const String FILENAME = "assets/soccer_ball.obj";
         private const String FILENAME = @"D:\Facultate\EGC\L2\LaboratorEGC\assets\lowpolytree.obj";
-        //private const String FILENAME = "assets/bottle_cap_obj.obj";
-        //private const String FILENAME = "assets/slime.obj";
-        //private const String FILENAME = @"D:\Facultate\EGC\L2\LaboratorEGC\assets\Cat.obj";
-        //private const String FILENAME = "assets/volleyball.obj";
-        private const int FACTOR_SCALARE_IMPORT = 100;
+        private const int FACTOR_SCALARE_IMPORT = 1;
 
         private List<Vector3> coordsList;
         private bool visibility;
@@ -27,12 +22,13 @@ namespace LaboratorEGC
             try
             {
                 coordsList = LoadFromObjFile(FILENAME);
+
                 if (coordsList.Count == 0)
                 {
                     Console.WriteLine("Crearea obiectului a esuat: obiect negasit/coordonate lipsa!");
                     return;
                 }
-                visibility = false;
+                visibility = true;
                 meshColor = col;
                 hasError = false;
                 Console.WriteLine("Obiect 3D încarcat - " + coordsList.Count.ToString() + " vertexuri disponibile!");
@@ -66,6 +62,15 @@ namespace LaboratorEGC
             }
         }
 
+
+        public void Translate(Vector3 translateVector)
+        {
+            for(int i = 0; i < coordsList.Count; i++)
+            {
+                coordsList[i] += translateVector;
+            }
+        }
+
         private List<Vector3> LoadFromObjFile(string fname)
         {
             List<Vector3> vlc3 = new List<Vector3>();
@@ -90,11 +95,11 @@ namespace LaboratorEGC
                             float zval = float.Parse(block[3].Trim()) * FACTOR_SCALARE_IMPORT;
 
                             vlc3.Add(new Vector3((int)xval, (int)yval, (int)zval));
-
                         }
                     }
                 }
             }
+
             return vlc3;
         }
 

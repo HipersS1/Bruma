@@ -41,15 +41,14 @@ namespace LaboratorEGC
         bool startAnimatieDown;
         bool startAnimatieUp;
         bool mouseClicked;
-        private ulong updatesCounter;
+        //private ulong updatesCounter;
         private int maxHeight = 25;
 
         //Forme
-        Cube cub;
-        Cube cub2;
-        Triunghi trFis2;
+        Cube cub, cub2;
         MassiveObject obj;
-
+        Axes coordAxes;
+        Triunghi trFis, tr, trFis2;
         //Constante
         private const int maxColor = 255;
         private const int minColor = 0;
@@ -61,12 +60,19 @@ namespace LaboratorEGC
         {
             VSync = VSyncMode.Adaptive;
             KeyDown += Keyboard_KeyDown;
-            updatesCounter = 0;
-
-            obj = new MassiveObject(Color.Yellow);
-            
 
             cam = new Camera3D();
+            coordAxes = new Axes();
+
+            obj = new MassiveObject(Color.Red);
+            obj.Translate(new Vector3(10, 5, 0));
+
+            trFis = Triunghi.ReadFileTriangle(fileName);
+            v0 = new Vector3(5, 0, 0);
+            v1 = new Vector3(10, 0, 0);
+            v2 = new Vector3(10, 10, 0);
+
+            tr = new Triunghi(v0, v1, v2);
 
             cub = new Cube(fileNameCube); // cub
             cub2 = new Cube(fileNameCube); // cub animatie
@@ -79,10 +85,6 @@ namespace LaboratorEGC
             trFis2 = Triunghi.ReadFileTriangle(fileName);
             trFis2.Translate(new Vector3(10, 0, 0));
 
-
-            v0 = new Vector3(5, 0, 0);
-            v1 = new Vector3(10, 0, 0);
-            v2 = new Vector3(10, 10, 0);
             ///initializare culori pentru cub
             randomColors = new Randomizer();
             cubeColors = new Color[6];
@@ -90,6 +92,7 @@ namespace LaboratorEGC
             {
                 cubeColors[i] = randomColors.RandomColor();
             }
+
             TextMenu();
         }
 
@@ -141,8 +144,6 @@ namespace LaboratorEGC
         
         protected override void OnUpdateFrame(FrameEventArgs e)
         {
-            
-
             GL.Clear(ClearBufferMask.ColorBufferBit);
             KeyboardState keyboardInput = OpenTK.Input.Keyboard.GetState();
             MouseState mouse = OpenTK.Input.Mouse.GetState();
@@ -420,34 +421,22 @@ namespace LaboratorEGC
             base.OnRenderFrame(e);
             
             GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
-
+            obj.Draw();
             //Matrix4 lookat = Matrix4.LookAt(eyeX, eyeY, eyeZ, 0, 0, 0, 0, 1, 0);
             //GL.MatrixMode(MatrixMode.Modelview);
             //GL.LoadMatrix(ref lookat);
 
-            Axes coordAxes = new Axes();
             coordAxes.setWidth(5);
             coordAxes.DrawAxes();
-
-            Triunghi trFis = Triunghi.ReadFileTriangle(fileName);
             Triunghi.DrawTriangle(trFis, Color.FromArgb(2, colorRed, colorGreen, colorBlue), Color.FromArgb(colorBlue, colorRed, colorGreen), Color.FromArgb(colorGreen, colorRed, colorBlue));
-
-            Triunghi tr = new Triunghi(v0, v1, v2);
             Triunghi.DrawTriangle(tr);
 
-            obj.Draw();
+            
             cub.DrawCube(cubeColors);
             if(mouseClicked)
                 this.MoveCube(cub2);
             cub2.DrawCube(cubeColors);
-
-
-            //DrawAxes(); // Laborator 3 Punctul 1 //Desenarea axelor
-            //DrawForm3();
-            //DrawForm2();
-
             #region Laborator 2 afisare cub / rotire
-
             if (showCube == true)
             {
                 angle += rotation_speed * (float)e.Time;
