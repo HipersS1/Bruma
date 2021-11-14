@@ -619,8 +619,9 @@ namespace LaboratorEGC
             Console.Clear();
             Console.WriteLine("Modificare culoare triunghi:\n"
                             + "Tasta R, G, B + sageata sus/jos\n\n"
-                            + "Apasati W pentru afisarea cubului\n"
                             + "Tineti apasat controlLeft + un numar de  la 1-6 pentru schimbarea culorii fetei cubului\n"
+                            + "F - far camera | C - close camera | Click cubul cade\n"
+                            + "W A S D camera movement| Q E up down camera movement\n"
                             + "\n");
         }
         public bool CheckIfInRangeColor(int color)
